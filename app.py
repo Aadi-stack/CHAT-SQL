@@ -7,6 +7,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from sqlalchemy import create_engine
 import sqlite3
+import pandas as pd
 from langchain_groq import ChatGroq
 
 st.set_page_config(page_title="LangChain: Chat with SQL DB", page_icon="🦜")
@@ -15,26 +16,28 @@ st.title("🦜 LangChain: Chat with SQL DB")
 LOCALDB="USE_LOCALDB"
 MYSQL="USE_MYSQL"
 
-radio_opt=["Use SQLLite 3 Database- Student.db","Connect to you MySQL Database"]
+radio_opt=["Use SQLLite 3 Database- Student.db","Connect to your MySQL Database"]
 
 selected_opt=st.sidebar.radio(label="Choose the DB which you want to chat",options=radio_opt)
 
 if radio_opt.index(selected_opt)==1:
+    st.sidebar.info("Before connecting to MySQL, make sure you have:\n- MySQL host address (like 'localhost' or a remote IP)\n- MySQL username with proper access rights\n- MySQL password\n- Database name you want to connect to\n- Ensure your MySQL server allows remote connections if not running locally")
+
     db_uri=MYSQL
     mysql_host=st.sidebar.text_input("Provide MySQL Host")
-    mysql_user=st.sidebar.text_input("MYSQL User")
-    mysql_password=st.sidebar.text_input("MYSQL password",type="password")
-    mysql_db=st.sidebar.text_input("MySQL database")
+    mysql_user=st.sidebar.text_input("MySQL User")
+    mysql_password=st.sidebar.text_input("MySQL Password",type="password")
+    mysql_db=st.sidebar.text_input("MySQL Database")
 else:
     db_uri=LOCALDB
 
-api_key=st.sidebar.text_input(label="GRoq API Key",type="password")
+api_key=st.sidebar.text_input(label="Groq API Key",type="password")
 
 if not db_uri:
     st.info("Please enter the database information and uri")
 
 if not api_key:
-    st.info("Please add the groq api key")
+    st.info("Please add the Groq API key")
 
 ## LLM model
 llm=ChatGroq(groq_api_key=api_key,model_name="Llama3-8b-8192",streaming=True)
@@ -84,7 +87,3 @@ if user_query:
         response=agent.run(user_query,callbacks=[streamlit_callback])
         st.session_state.messages.append({"role":"assistant","content":response})
         st.write(response)
-
-        
-
-
